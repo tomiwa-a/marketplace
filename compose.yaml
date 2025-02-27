@@ -1,0 +1,119 @@
+services:
+  user-service:
+    container_name: user-service
+    build: ./user-service
+    ports:
+      - '2000:2000'
+    environment:
+      - USER_DB_DSN=postgres://postgres:root@user-db:5432/marketplace_users?sslmode=disable
+      - JWT_SECRET=shuoij2ijvi0939
+    networks:
+        - microservices-net
+    depends_on:
+        - user-db
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./user-service
+          target: /app
+          ignore:
+            - .git/
+            - .gitignore
+            - vendor/
+            - "*.md"
+  
+  user-db:
+    container_name: user-db
+    image: postgres:15
+    # restart: always
+    ports:
+      - "5430:5432"
+    shm_size: 128mb
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=marketplace_users
+
+  kong:
+    container_name: kong
+    image: kong:latest
+    volumes: 
+      - ./kong.yml:/usr/local/kong/declarative/kong.yml
+      - ./lua-plugins:/usr/local/share/lua/5.1/kong/plugins
+    networks:
+      - microservices-net
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_ADMIN_GUI_URL=http://0.0.0.0:8002
+      - KONG_ADMIN_CORS_ORIGINS=*
+      - KONG_ADMIN_GUI_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_GUI_ERROR_LOG=/dev/stderr
+      - KONG_LUA_PACKAGE_PATH=/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;;
+      - KONG_PLUGINS=bundled,jwt,auth-plugin
+      - JWT_SECRET=shuoij2ijvi0939
+    ports:
+      - "8002:8002"
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+    depends_on:
+      - user-service
+
+  products-db:
+    image: mongo
+    container_name: products-db
+    networks:
+      - microservices-net
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: marketplace_products
+    ports:
+      - 27017:27017
+
+  messaging-db:
+    image: mongo
+    container_name: messaging-db
+    networks:
+      - microservices-net
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: marketplace_messaging
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    networks:
+      - microservices-net
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:root@products-db:27017
+      ME_CONFIG_BASICAUTH: false
+
+
+volumes:
+  user-db-data:
+
+networks:
+  microservices-net:
+    driver : bridge
+
+# docker-compose down -v
+# docker-compose up --build
