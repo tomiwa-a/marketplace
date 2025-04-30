@@ -1,7 +1,8 @@
 const e = require("express");
 const mongoose = require("mongoose");
+require('dotenv').config()
 
-const dbURI = "mongodb://root:root@localhost:27017/marketplace_products?authSource=admin";
+const dbURI = process.env.PRODUCT_DB_URI;
 
 async function dbConnect() {
     try {

@@ -1,0 +1,37 @@
+# include:
+#   - ../docker-compose.base.yaml
+
+services:
+  products-service:
+    container_name: products-service
+    build: .
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    command: npm start
+    environment:
+      - PRODUCT_DB_URI=mongodb://root:root@products-db:27017/marketplace_products?authSource=admin
+    networks:
+      - microservices-net
+    depends_on:
+      - products-db
+      # - kong
+    volumes:
+      - .:/app
+
+  products-db:
+    image: mongo
+    container_name: products-db
+    networks:
+      - microservices-net
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: marketplace_products
+    ports:
+      - 27017:27017
+
+networks:
+  microservices-net:
+    external: true
+    name: microservices-net

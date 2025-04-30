@@ -1,35 +1,17 @@
-const express = require("express")
-const morgan = require("morgan")
-require('dotenv').config()
+const connect = require("./db/connect");
 
-const routes = require("./routes/routes")
-const connect = require("./db/connect")
-const errorHandlerMiddleware = require("./middleware/error-handler")
+const container = require('./config/container');
 
-const app = express()
+const App = require("./app");
 
-app.use(morgan("dev"));
-app.use(express.json());
-
-app.use(express.urlencoded({ extended: true }));
-
-app.use(routes.product)
-app.use("/location", routes.locations )
-
-
-app.get("/", (req, res) => {
-  res.status(200).json(
-    {
-        "message": "Welcome to the product API"
-    }
-  )
-})
-
-// Error handling middleware
-app.use(errorHandlerMiddleware);
+const app = new App(container).setupApp();
 
 app.listen(3000, async () => {
-  await connect.dbConnect()
-  console.log("Server is running on port 3000")
-})
-
+  try {
+    await connect.dbConnect();
+    console.log("Server is running on port 3000");
+  } catch (error) {
+    console.error("Failed to connect to the database:", error.message);
+    process.exit(1); 
+  }
+});

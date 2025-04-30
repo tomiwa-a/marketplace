@@ -1,7 +1,7 @@
 const asyncWrapper = require("../middleware/async");
 const {validateObjectId} = require("../utils/validation")
 
-const State = require("../models/State");
+const State = require("../models/state");
 
 const addStateController = asyncWrapper(async (req, res) => {
 

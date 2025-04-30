@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach",
+      "port": 9229,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
+    
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Container",
+      "address": "localhost",
+      "port": 9229,
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "restart": true,
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Docker: Debug",
+      "configurations": ["Attach to Container"],
+      "preLaunchTask": "docker-compose up"
+    }
+  ]
+}

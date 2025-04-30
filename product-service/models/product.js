@@ -1,85 +1,106 @@
-const mongoose = require("mongoose")
+const { string } = require("joi");
+const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
 const STATUS_ENUM = {
-    values: ['active', 'pending', 'disabled'],
-    message: 'status enum validator failed for path `{PATH}` with value `{VALUE}`'
-  }
+  values: ["active", "pending", "deleted"],
+  message:
+    "status enum validator failed for path `{PATH}` with value `{VALUE}`",
+};
 
-const productSchema = new Schema({
+const productSchema = new Schema(
+  {
     userId: {
-        type: String,
-        required: true,
+      type: mongoose.Schema.Types.UUID,
+      required: true,
     },
-    title:{
-        type: String,
-        required: true,
+    title: {
+      type: String,
+      required: true,
     },
-    quantity:{
-        type: Number, 
-        required: true, 
-        default: 1
+    quantity: {
+      type: Number,
+      required: true,
+      default: 1,
     },
-    description:{
-        type: String, 
-        required: true, 
+    description: {
+      type: String,
+      required: true,
     },
     price: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
     },
     category: {
-        type: String, 
-        required: true,
+      type: String,
+      required: true,
     },
     type: {
+      type: String,
+      required: true,
+    },
+    media: [
+      {
+        name: String,
         type: String,
+      },
+    ],
+    location: {
+      country: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Country",
         required: true,
+      },
+      state: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "State",
+        required: true,
+      },
+      city: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "City",
+        required: true,
+      },
     },
-    media: [{
-        name: String, 
-        type: String, 
-    }],
-    location:{
-        country: {
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: "Country",
-            required: true
+    openHours: [
+      {
+        day: {
+          type: String,
+          enum: ["mon", "tue", "wed", "thur", "fri", "sat", "sun"],
+          required: true,
         },
-        state : {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "State",
-            required: true
-        },
-        city: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "City",
-            required: true
-        },
+        open: mongoose.Schema.Types.Date,
+        close: mongoose.Schema.Types.Date,
+      },
+    ],
 
-    },
+    // details: {
+    //     color: string,
+    //     brand: string,
+    //     power_source: string,
+    //     material: string
+    // },
     status: {
-        type: String,
-        enum: STATUS_ENUM,
-        required: true,
-        default: "pending"
+      type: String,
+      enum: STATUS_ENUM,
+      required: true,
+      default: "pending",
     },
-
-},
-{
+  },
+  {
     timestamps: true,
     toJSON: {
-        transform: function(doc, ret) {
-            ret.id = ret._id;
-            delete ret._id;
-            delete ret.__v;
-            return ret;
-        }
-    }
-}
-)
+      transform: function (doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
+);
 
-const Product = mongoose.model("Product", productSchema)
+const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;

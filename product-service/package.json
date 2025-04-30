@@ -4,7 +4,9 @@
   "description": "product microservice for the marketplace backend api",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --inspect index.js",
+    "start": "nodemon --inspect=0.0.0.0:9229 index.js",
+    "test": "jest --watchAll --verbose --detectOpenHandles"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +16,12 @@
     "joi": "^17.13.3",
     "mongoose": "^8.10.1",
     "morgan": "^1.10.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0"
   }
 }
