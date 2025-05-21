@@ -1,16 +1,24 @@
-const router = require("express").Router()
-
 const {
-    addCategory, 
-    deleteCategory, 
-    getAllCategories,
-    addTypeToCategory
-} = require("../controllers/categories")
+    requireAuthenticatedUser,
+    requireActivatedUser,
+  } = require("../middleware/auth");
+  
+  const authenticatedUser = [requireAuthenticatedUser, requireActivatedUser];
 
-router.get("/", getAllCategories)
-router.post("/", addCategory)
-router.post("/:categoryId", addTypeToCategory)
+class CategoryRoutes {
+  constructor(configContainer) {
+    this.configContainer = configContainer;
+    this.categoryController = configContainer.getController("category");
+    this.router = require("express").Router();
+  }
 
+  setupRoutes(){
 
+    this.router.get("/", this.categoryController.getAllCategories)
+    this.router.post("/", this.categoryController.addCategory)
+    this.router.post("/:categoryId", this.categoryController.addTypeToCategory)
+    return this.router;
+  }
+}
 
-module.exports = router
+module.exports = CategoryRoutes;

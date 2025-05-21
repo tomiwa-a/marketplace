@@ -73,11 +73,11 @@ class MongoProductRepository {
                     }
                     : {}
             )
-            .where({
-                status: {
-                    $eq: "active",
-                },
-            });
+            // .where({
+            //     status: {
+            //         $eq: "active",
+            //     },
+            // });
 
         const totalRecords = await query.clone().countDocuments();
 

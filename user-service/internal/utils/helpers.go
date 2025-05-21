@@ -147,12 +147,12 @@ func ReadQueryInt(qs url.Values, key string, defaultValue int) int {
 	return i
 }
 
-func SetCookie(c *gin.Context, name string, value string) {
+func SetCookie(c *gin.Context, name string, value string, exp int) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(
 		name,
 		value,
-		3600*24*30,
+		exp,
 		"",
 		"",
 		false,

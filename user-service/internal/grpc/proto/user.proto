@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "internal/grpc";
+
+import "google/protobuf/timestamp.proto";
+
+message User {
+    string public_id = 1;
+    string name = 2;
+    string email = 3;
+    string address = 4;
+    string phone_number = 5;
+    bool activated = 6;
+    bool verified = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp last_seen = 9;
+    double rating = 10;
+}
+
+service UserService {
+    rpc GetUser(UserId) returns (User) {}
+    rpc GetMultipleUsers(UserIdList) returns (UserResponseList) {}
+    rpc GetUsers(Empty) returns (UserResponseList) {}
+}
+
+message Empty {}
+
+message UserId {
+    string user_id = 1;  // UUID string format
+}
+
+message UserIdList {
+    repeated string user_ids = 1;  // UUID string format
+}
+
+message UserResponseList {
+    repeated User users = 1;
+}

@@ -352,8 +352,8 @@ func generateAuthTokensUtil(app *app.Application, c *gin.Context, userID uuid.UU
 		return err
 	}
 
-	utils.SetCookie(c, USER_ACCESS_KEY, access_token.Token)
-	utils.SetCookie(c, USER_REFRESH_KEY, refresh_token.Token)
+	utils.SetCookie(c, USER_ACCESS_KEY, access_token.Token, 3600*0.5)
+	utils.SetCookie(c, USER_REFRESH_KEY, refresh_token.Token, 3600*24)
 
 	return nil
 }

@@ -8,12 +8,12 @@ export type MessageDocument = HydratedDocument<Message>;
 @Schema({timestamps: true})
 export class Message{
 
-    // @Prop({
-    //     required: true,
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Conversation'
-    // })
-    // conversation: Conversation
+    @Prop({
+        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Conversation'
+    })
+    conversationId: Conversation
 
     @Prop({
         type: mongoose.Schema.Types.UUID,
@@ -32,9 +32,17 @@ export class Message{
     @Prop({
         required: true,
         enum: ["text", "image", "video", "audio", "file", "sticker", "product"],
-        default: "text"
+        default: "text",
+        immutable: true
     })
     type: string
+
+    @Prop({
+        required: true, 
+        type: String,
+        immutable: true
+    })
+    content: string
 
 }
 

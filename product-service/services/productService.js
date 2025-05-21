@@ -1,77 +1,123 @@
-const { validateProduct } = require('../data/validation');
-const { validateObjectId } = require('../utils/validation');
-const { calculateMetaData } = require('../utils/utils');
+const { validateProduct } = require("../data/validation");
+const { validateObjectId } = require("../utils/validation");
+const { calculateMetaData } = require("../utils/utils");
+const { validate } = require("uuid");
 
 class ProductService {
-    constructor(productRepository) {
-        this.productRepository = productRepository;
+  constructor(productRepository, redisService, loggerService) {
+    this.productRepository = productRepository;
+    this.redisService = redisService;
+    this.logger = loggerService;
+  }
+
+  async #getProductKey(productId) {
+    return `product:${productId}`;
+  }
+
+  async getProduct(productId) {
+    validateObjectId(productId);
+
+    // this.logger.info("hllo worl");
+
+    const productKey = await this.#getProductKey(productId);
+    try {
+      let product = await this.redisService.get(productKey);
+      if (product) {
+        return JSON.parse(product);
+      }
+    } catch (error) {
+      this.logger.error("Redis error in getProduct: ", error);
     }
 
-    async getProduct(productId) {
-        validateObjectId(productId);
-        const product = await this.productRepository.findById(productId);
-        if (!product) {
-            throw new Error('Product not found');
-        }
-        return product;
+    const product = await this.productRepository.findById(productId);
+    if (!product) {
+      throw new Error("Product not found");
     }
 
-    async listProducts() {
-        return await this.productRepository.findAll();
+    try {
+      await this.redisService.set(productKey, JSON.stringify(product), this.redisService.EXPIRATION_MEDIUM);
+    } catch (error) {
+      this.logger.error('Redis error in getProduct:', error);
+    }
+    return product;
+  }
+
+  async addProduct(productData) {
+    const { error, value } = validateProduct(productData);
+    if (error) {
+      throw new Error(error.details[0].message);
     }
 
-    async addProduct(productData) {
-        const { error, value } = validateProduct(productData);
-        if (error) {
-            throw new Error(error.details[0].message);
-        }
+    await this.productRepository.verifyCategory(value.category, value.type);
+    let product = await this.productRepository.create(value);
 
-        await this.productRepository.verifyCategory(value.category, value.type);
-        return await this.productRepository.create(value);
+    try {
+      const productKey = await this.#getProductKey(product.id);
+      await this.redisService.set(productKey, JSON.stringify(product), this.redisService.EXPIRATION_MEDIUM);
+    } catch (error) {
+      this.logger.error('Redis error in addProduct:', error);
     }
 
-    async updateProduct(productId, updates) {
-        validateObjectId(productId);
-        
-        const product = await this.productRepository.findById(productId);
-        if (!product) {
-            throw new Error('Product not found');
-        }
+    return product;
+  }
 
-        const input = {
-            ...product.toObject(),
-            ...updates
+  async listUserProducts(userId, filters, formattedUrl) {
+    if (!validate(userId)) {
+      throw new Error("Invalid user id");
+    }
+
+    const SAFE_SORT_LIST = ["price", "date", "-price", "-date"];
+    if (!SAFE_SORT_LIST.includes(filters.sort)) {
+      throw new Error("Invalid sort field");
+    }
+
+    let productsData;
+    let totalRecords = 0;
+
+    try {
+      const productsKey = await this.#getProductKey(formattedUrl);
+      productsData = await this.redisService.get(productsKey);
+      if (productsData) {
+        productsData = JSON.parse(productsData);
+        totalRecords = productsData.length;
+        return { 
+          products: productsData, 
+          metadata: calculateMetaData(totalRecords, filters.page, filters.limit) 
         };
-
-        const { error, value } = validateProduct(input);
-        if (error) {
-            throw new Error(error.details[0].message);
-        }
-
-        return await this.productRepository.update(productId, updates);
+      }
+    } catch (error) {
+      this.logger.error('Redis error in listUserProducts:', error);
     }
 
-    async deleteProduct(productId) {
-        validateObjectId(productId);
-        
-        const product = await this.productRepository.delete(productId);
-        if (!product) {
-            throw new Error('Product not found');
-        }
-        return product;
+    let products = await this.productRepository.findByUserId(userId, filters);
+    productsData = products.products;
+    totalRecords = products.totalRecords;
+
+    if (totalRecords !== 0) {
+      try {
+        const productsKey = await this.#getProductKey(formattedUrl);
+        await this.redisService.set(
+          productsKey,
+          JSON.stringify(productsData),
+          this.redisService.EXPIRATION_SHORT
+        );
+      } catch (error) {
+        this.logger.error('Redis error in listUserProducts:', error);
+      }
     }
 
-    async listUserProducts(userId, filters) {
-        const SAFE_SORT_LIST = ["price", "date", "-price", "-date"];
-        if (!SAFE_SORT_LIST.includes(filters.sort)) {
-            throw new Error('Invalid sort field');
-        }
+    const metadata = calculateMetaData(
+      totalRecords,
+      filters.page,
+      filters.limit
+    );
 
-        const { products, totalRecords } = await this.productRepository.findByUserId(userId, filters);
-        const metadata = calculateMetaData(totalRecords, filters.page, filters.limit);
+    return { products: productsData, metadata };
+  }
 
-        return { products, metadata };
-    }
+  async listProducts(){
+    
+  }
 }
 
 module.exports = ProductService;

@@ -24,6 +24,8 @@ func init() {
 }
 
 func main() {
+
+	return
 	cfg := config.LoadConfig()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -61,7 +63,7 @@ func main() {
 		// Add timeout for graceful shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
+		if err = srv.Shutdown(ctx); err != nil {
 			log.Fatal("Server forced to shutdown:", err)
 		}
 	}()

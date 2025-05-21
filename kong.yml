@@ -10,48 +10,51 @@ services:
           - /api/v1/users
         path_handling: "v0"
 
+  - name: products-service
+    url: http://products-service:3000
+    routes:
+      - name: products-route
+        paths:
+          - /api/v1/products
+        path_handling: "v0"
+
 plugins:
-  - name: jwt
+  - name: auth-plugin
     service: user-service
     config:
-      key_claim_name: iss
-      cookie_names: ["user_auth_token"]
-      claims_to_verify: ["exp"]
-      anonymous: "public-user"  # Allow no-JWT requests
-      # claims_to_headers: ["role", "verified", "sub"]
-      run_on_preflight: false  # Let CORS work freely
+      jwt_secret: "shuoij2ijvi0939"
+      activation_endpoint: "http://user-service:2000/%s"
+      cache_ttl: 30
+      timeout: 3000
 
-  # Request Transformer to forward JWT claims as headers
-  - name: request-transformer
-    service: user-service
+  - name: auth-plugin
+    service: products-service
     config:
-      add:
-        headers:
-          - "X-Claim-Role:$(jwt_claims.role or '')"  # Map "role" claim to X-Claim-Role
-          - "X-Claim-Sub:$(jwt_claims.sub or '')"  # Map "sub" claim to X-Claim-Sub
-  
-#   - name: auth-plugin
-#     service: user-service
-#     config:
-#       activation_endpoint: "http://user-service:2000/%s/activation-status"
-#       cache_ttl: 30  # Cache for 30 seconds
-#       timeout: 3000   # 3 second timeout
+      jwt_secret: "shuoij2ijvi0939"
+      activation_endpoint: "http://user-service:2000/%s"
+      cache_ttl: 30
+      timeout: 3000
 
-
-consumers:
-  - username: public-user  # "Unauthenticated" consumer
-  - username: admin-user
-    jwt_secrets:
-      - key: "admin-issuer"  # Matches the "iss" claim in admin tokens
-        secret: ${JWT_SECRET}
-  - username: regular-user
-    jwt_secrets:
-      - key: "user-issuer"   # Matches the "iss" claim in user tokens
-        secret: ${JWT_SECRET}
 
 # plugins:
-#   - name: auth-plugin
-#     route: user-route
+#   - name: jwt
+#     enabled: true
+#     service: user-service
 #     config:
-#       auth_endpoint: http://user-service:2000/auth/validate
-#       auth_key: user_auth_token
+#       key_claim_name: iss
+#       cookie_names: ["user_auth_token"]
+#       claims_to_verify: 
+#         - exp
+#       anonymous: "public-user"  # Allow no-JWT requests
+#       # claims_to_headers: ["role", "verified", "sub"]
+#       run_on_preflight: false  # Let CORS work freely
+
+  # # Request Transformer to forward JWT claims as headers
+  # - name: request-transformer
+  #   service: user-service
+  #   config:
+  #     add:
+  #       headers:
+  #         - "X-Claim-Role:$(jwt_claims.role or '')"  # Map "role" claim to X-Claim-Role
+  #         - "X-Claim-Sub:$(jwt_claims.sub or '')"  # Map "sub" claim to X-Claim-Sub
+  

@@ -175,7 +175,7 @@ func (m UserModel) Update(user *models.User) error {
 
 func (m UserModel) GetByPublicID(userID uuid.UUID) (*models.User, error) {
 	query := `
-	SELECT id, public_id, name, email, password_hash, address, phone_number, created_at, last_seen, version, rating
+	SELECT id, public_id, name, email, password_hash, address, phone_number, created_at, last_seen, version, rating, activated, verified
 	FROM users
 	WHERE public_id = $1
 	`
@@ -194,6 +194,8 @@ func (m UserModel) GetByPublicID(userID uuid.UUID) (*models.User, error) {
 		&user.LastSeen,
 		&user.Version,
 		&user.Rating,
+		&user.Activated,
+		&user.Verified,
 	)
 	if err != nil {
 		switch {

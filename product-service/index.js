@@ -1,6 +1,6 @@
 const connect = require("./db/connect");
 
-const container = require('./config/container');
+const container = require("./config/container");
 
 const App = require("./app");
 
@@ -12,6 +12,6 @@ app.listen(3000, async () => {
     console.log("Server is running on port 3000");
   } catch (error) {
     console.error("Failed to connect to the database:", error.message);
-    process.exit(1); 
+    process.exit(1);
   }
 });

@@ -2,6 +2,7 @@ services:
   user-service:
     container_name: user-service
     build: ./user-service
+    restart: unless-stopped
     ports:
       - '2000:2000'
     environment:
@@ -22,10 +23,26 @@ services:
             - vendor/
             - "*.md"
   
+  products-service:
+    container_name: products-service
+    build: ./product-service
+    restart: unless-stopped
+    ports: 
+      - '3000:3000'
+    environment:
+      - PRODUCT_DB_URI=mongodb://root:root@products-db:27017/marketplace_products?authSource=admin
+    networks:
+        - microservices-net
+    depends_on:
+        - products-db
+        - kong
+    volumes:
+      - ./product-service:/app
+    
   user-db:
     container_name: user-db
     image: postgres:15
-    # restart: always
+    restart: unless-stopped
     ports:
       - "5430:5432"
     shm_size: 128mb
@@ -41,11 +58,11 @@ services:
   kong:
     container_name: kong
     image: kong:latest
+    restart: unless-stopped
     volumes: 
       - ./kong.yml:/usr/local/kong/declarative/kong.yml
-      - ./lua-plugins:/usr/local/share/lua/5.1/kong/plugins
-    networks:
-      - microservices-net
+      - ./lua-plugins/auth-plugin:/usr/local/share/lua/5.1/kong/plugins/auth-plugin/
+    
     environment:
       - KONG_DATABASE=off
       - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
@@ -58,21 +75,22 @@ services:
       - KONG_ADMIN_CORS_ORIGINS=*
       - KONG_ADMIN_GUI_ACCESS_LOG=/dev/stdout
       - KONG_ADMIN_GUI_ERROR_LOG=/dev/stderr
-      - KONG_LUA_PACKAGE_PATH=/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;;
-      - KONG_PLUGINS=bundled,jwt,auth-plugin
-      - JWT_SECRET=shuoij2ijvi0939
+      # - KONG_LUA_PACKAGE_PATH=/usr/local/share/lua/5.1/?.lua;;
+      - KONG_PLUGINS=bundled,auth-plugin
+      # - JWT_SECRET=shuoij2ijvi0939
     ports:
       - "8002:8002"
       - "8000:8000"
       - "8443:8443"
       - "8001:8001"
       - "8444:8444"
-    depends_on:
-      - user-service
+    # depends_on:
+    #   - user-service
 
   products-db:
     image: mongo
     container_name: products-db
+    restart: unless-stopped
     networks:
       - microservices-net
     environment:
@@ -85,6 +103,7 @@ services:
   messaging-db:
     image: mongo
     container_name: messaging-db
+    restart: unless-stopped
     networks:
       - microservices-net
     environment:
@@ -97,6 +116,7 @@ services:
   mongo-express:
     image: mongo-express
     container_name: mongo-express
+    restart: unless-stopped
     networks:
       - microservices-net
     ports:
@@ -113,7 +133,9 @@ volumes:
 
 networks:
   microservices-net:
-    driver : bridge
+    external: true
+    name: microservices-net
 
 # docker-compose down -v
+# docker network create microservices-net
 # docker-compose up --build

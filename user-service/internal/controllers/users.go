@@ -20,6 +20,10 @@ func UserDetailsHander(app *app.Application) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
+		fmt.Println("user in header", c.Request.Header.Get("X-User-Id"))
+		fmt.Println("role in header", c.Request.Header.Get("X-User-Role"))
+		fmt.Println("activated in header", c.Request.Header.Get("X-User-Activated"))
+
 		public_id := c.Param("public_id")
 		v := validator.New()
 

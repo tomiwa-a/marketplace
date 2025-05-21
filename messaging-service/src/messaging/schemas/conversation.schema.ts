@@ -14,18 +14,17 @@ enum ConversationStatus {
 export class Conversation{
 
     @Prop({
-        type: mongoose.Schema.Types.UUID,
+        type: [mongoose.Schema.Types.UUID],
         required: true,
         immutable: true
     })
-    user_id: UUID;
+    participants: UUID[];
 
     @Prop({
-        type: mongoose.Schema.Types.UUID,
-        required: true,
-        immutable: true
+        enum: ConversationStatus,
+        default: "active"
     })
-    contact_id: UUID;
+    status: string
 
 }
 

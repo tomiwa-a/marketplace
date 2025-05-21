@@ -7,6 +7,9 @@ const Routes = require("./routes/routes");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const { setDefaultHeaders } = require("./utils/utils");
 
+const swaggerUI = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
+
 class App {
   constructor(configContainer) {
     this.configContainer = configContainer;
@@ -21,6 +24,9 @@ class App {
     app.use(express.json());
 
     app.use(express.urlencoded({ extended: true }));
+
+    app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+
 
     // Uncomment the following line during development to manually set headers
     app.use(setDefaultHeaders);

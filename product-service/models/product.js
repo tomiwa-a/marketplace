@@ -12,7 +12,7 @@ const STATUS_ENUM = {
 const productSchema = new Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.UUID,
+      type: String,
       required: true,
     },
     title: {

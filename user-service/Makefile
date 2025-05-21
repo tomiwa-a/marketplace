@@ -1,4 +1,4 @@
-# include .envrc
+include .envrc
 
 ## help: print this help message
 .PHONY: help
@@ -13,6 +13,7 @@ confirm:
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run/api:
+	@echo ${USER_DB_DSN}
 	@go run ./cmd  -db-dsn=${USER_DB_DSN}
 
 ## air: run the cmd/api application with AIR package for hot reload

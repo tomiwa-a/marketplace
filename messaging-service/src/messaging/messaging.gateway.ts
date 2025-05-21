@@ -1,7 +1,7 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { MessagingService } from './messaging.service';
 
-import {Server } from 'socket.io';
+import {Server, Socket } from 'socket.io';
 
 @WebSocketGateway()
 export class MessagingGateway {
@@ -18,8 +18,12 @@ export class MessagingGateway {
     })
   }
 
-  @SubscribeMessage("newMessage")
+  @SubscribeMessage("message")
   onNewMessage(@MessageBody() body:any){
+
+    //check HEADER FOR X-USER for the person logged in. 
+    //check if the conversation exists.
+    //if it does join a room?
     console.log(body)
   }
 }

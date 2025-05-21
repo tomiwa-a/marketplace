@@ -9,8 +9,6 @@ class ProductController {
     getProductController = asyncWrapper(async (req, res) => {
         const { productId } = req.params;
 
-        // console.log("Product ID:", productId);
-
         try {
             const product = await this.productService.getProduct(productId);
 
@@ -95,10 +93,15 @@ class ProductController {
             type: req.query.type || "",
             priceFrom: req.query.priceFrom || "",
             priceTo: req.query.priceTo || "",
+            status: ["active"]
         };
 
+        let base = "/user/"
+
+        const formattedUrl = req.originalUrl.slice(base.length);
+
         try {
-            const { products, metadata } = await this.productService.listUserProducts(userId, filters);
+            const { products, metadata } = await this.productService.listUserProducts(userId, filters, formattedUrl);
             res.status(200).json({
                 message: "Products found",
                 products: products,
@@ -106,7 +109,7 @@ class ProductController {
             });
         } catch (error) {
             return res.status(400).json({
-                message: error.message,
+                error: error.message,
             });
         }
     });
