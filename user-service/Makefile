@@ -19,7 +19,7 @@ run/api:
 ## air: run the cmd/api application with AIR package for hot reload
 .PHONY: air
 air:
-	@air
+	@air -c .air.api.toml
 
 
 ## db/psql: connect to the database using psql

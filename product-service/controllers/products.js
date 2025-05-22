@@ -24,6 +24,7 @@ class ProductController {
     });
 
     listProductsController = asyncWrapper(async (req, res) => {
+        
         const products = await this.productService.listProducts();
         res.status(200).json({
             message: "Products found",

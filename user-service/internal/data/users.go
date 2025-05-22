@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"user-service.marketplace.tomiwa.net/internal/models"
 )
 
@@ -206,6 +207,49 @@ func (m UserModel) GetByPublicID(userID uuid.UUID) (*models.User, error) {
 		}
 	}
 	return &user, nil
+}
+
+func (m UserModel) GetByMultiplePublicIDs(publicIDs []uuid.UUID) ([]models.User, error) {
+	fmt.Println(publicIDs)
+	query := `
+	SELECT id, public_id, name, email, password_hash, address, phone_number, created_at, last_seen, version, rating
+	FROM users
+	WHERE TEXT(public_id) = ANY($1)
+	`
+	args := []interface{}{pq.Array(publicIDs)}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	rows, err := m.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err = rows.Scan(
+			&user.ID,
+			&user.PublicID,
+			&user.Name,
+			&user.Email,
+			&user.Password.Hash,
+			&user.Address,
+			&user.PhoneNumber,
+			&user.CreatedAt,
+			&user.LastSeen,
+			&user.Version,
+			&user.Rating,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+
+	}
+	if rows.Err() != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (m UserModel) ListUsers(f Filters, uf models.UserFilter) ([]models.User, Metadata, error) {
