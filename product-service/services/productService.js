@@ -4,10 +4,11 @@ const { calculateMetaData } = require("../utils/utils");
 const { validate } = require("uuid");
 
 class ProductService {
-  constructor(productRepository, redisService, loggerService) {
+  constructor(productRepository, redisService, loggerService, userGrpcService) {
     this.productRepository = productRepository;
     this.redisService = redisService;
     this.logger = loggerService;
+    this.userGrpcService = userGrpcService;
   }
 
   async #getProductKey(productId) {
@@ -74,6 +75,16 @@ class ProductService {
     let productsData;
     let totalRecords = 0;
 
+
+
+    let user = {};
+
+    try{
+      user = await this.userGrpcService.getUser(userId);
+    }catch(error){
+      this.logger.error('Grpc error in listUserProducts:', error);
+    }
+
     try {
       const productsKey = await this.#getProductKey(formattedUrl);
       productsData = await this.redisService.get(productsKey);
@@ -81,6 +92,7 @@ class ProductService {
         productsData = JSON.parse(productsData);
         totalRecords = productsData.length;
         return { 
+          user, 
           products: productsData, 
           metadata: calculateMetaData(totalRecords, filters.page, filters.limit) 
         };
@@ -112,7 +124,7 @@ class ProductService {
       filters.limit
     );
 
-    return { products: productsData, metadata };
+    return { user, products: productsData, metadata };
   }
 
   async listProducts(){

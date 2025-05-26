@@ -68,18 +68,24 @@ func (s *Server) GetMultipleUsers(ctx context.Context, in *UserIdList) (*UserRes
 
 	userResponses := make([]*User, len(users))
 	for i, user := range users {
-		userResponses[i] = &User{
+		response := &User{
 			PublicId:    user.PublicID.String(),
 			Name:        user.Name,
 			Email:       user.Email,
 			PhoneNumber: user.PhoneNumber,
 			Address:     user.Address,
 			Rating:      user.Rating,
-			// Activated:   *user.Activated,
-			// Verified:    *user.Verified,
-			CreatedAt: timestamppb.New(user.CreatedAt),
-			LastSeen:  timestamppb.New(user.LastSeen),
+			CreatedAt:   timestamppb.New(user.CreatedAt),
+			LastSeen:    timestamppb.New(user.LastSeen),
 		}
+
+		if user.Activated != nil {
+			response.Activated = *user.Activated
+		}
+		if user.Verified != nil {
+			response.Verified = *user.Verified
+		}
+		userResponses[i] = response
 	}
 	return &UserResponseList{
 		Users: userResponses,

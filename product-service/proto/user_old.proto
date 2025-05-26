@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+message User{
+    string name = 1;
+    string email = 2;
+}
+
+service UserService{
+    rpc GetUser(UserId) returns (User){}
+    rpc GetMultipleUsers(UserIdList) returns (UserResponseList){}
+    rpc GetUsers(Empty) returns (UserResponseList){}
+}
+
+message Empty {}
+
+message UserId{
+    int32 userid = 1;
+}
+
+message UserIdList{
+    repeated int32 userid = 1;
+}
+
+message UserResponseList{
+    repeated User users = 1;
+} 

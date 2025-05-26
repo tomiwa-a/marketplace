@@ -102,9 +102,10 @@ class ProductController {
         const formattedUrl = req.originalUrl.slice(base.length);
 
         try {
-            const { products, metadata } = await this.productService.listUserProducts(userId, filters, formattedUrl);
+            const { products, metadata, user } = await this.productService.listUserProducts(userId, filters, formattedUrl);
             res.status(200).json({
                 message: "Products found",
+                user: user,
                 products: products,
                 metadata: metadata,
             });

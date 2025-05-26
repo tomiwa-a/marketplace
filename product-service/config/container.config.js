@@ -16,7 +16,7 @@ module.exports = {
     },
     product: {
       class: require('../services/productService'),
-      dependencies: ['repositories.product', 'services.redis', 'services.logger']
+      dependencies: ['repositories.product', 'services.redis', 'services.logger', 'services.user_grpc']
     },
     mail: {
       class: require('../services/mailService'),
@@ -33,6 +33,10 @@ module.exports = {
     logger:{
       class: require('../services/loggerService'),
       dependencies: []
+    },
+    user_grpc:{
+      class: require('../services/user_grpcService'),
+      dependencies: ['services.logger']
     }
   },
   controllers: {

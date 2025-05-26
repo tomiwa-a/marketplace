@@ -23,7 +23,7 @@ function getHeaderUserActivated(req) {
 
 function setDefaultHeaders(req, res, next) {
   req.headers["x-user-id"] =
-    req.headers["x-user-id"] || "3f8c9b2e-7d4e-4a2a-9b6e-8f3d2c5a1f4b";
+    req.headers["x-user-id"] || "923f3b2b-bd70-4390-b29a-e8ac2acf9883";
   req.headers["x-user-role"] = req.headers["x-user-role"] || "user";
   req.headers["x-user-activated"] = req.headers["x-user-activated"] || "true";
   next();
